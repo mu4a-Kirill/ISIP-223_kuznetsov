@@ -70,6 +70,7 @@ namespace DailyExpenses
                         return;
                     default:
                         Console.WriteLine("Неверный выбор!");
+                    //
                         break;
                 }
             }
