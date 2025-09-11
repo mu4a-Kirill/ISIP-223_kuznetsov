@@ -1,159 +1,177 @@
 ﻿using System;
+using System.Globalization;
 
-namespace DailyExpenses
+class Program
 {
-    class Program
+    static void Main()
     {
-        static void Main(string[] args)
+        CultureInfo.CurrentCulture = new CultureInfo("ru-RU");
+
+        int count;
+        do
         {
-            Console.WriteLine("Учёт дневных расходов");
+            Console.Write("Введите количество операций (2-40): ");
+        } while (!int.TryParse(Console.ReadLine(), out count) || count < 2 || count > 40);
 
-            int count;
-            do
+        string[] names = new string[count];
+        decimal[] amounts = new decimal[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            Console.WriteLine($"\nОперация #{i + 1}:");
+            Console.Write("Название товара/услуги: ");
+            names[i] = Console.ReadLine();
+
+            Console.Write("Сумма в рублях: ");
+            while (!decimal.TryParse(Console.ReadLine(), out amounts[i]))
             {
-                Console.Write("Введите количество операций (2-40): ");
-            } while (!int.TryParse(Console.ReadLine(), out count) || count < 2 || count > 40);
-
-            string[] names = new string[count];
-            decimal[] amounts = new decimal[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                while (true)
-                {
-                    Console.Write($"Введите операцию {i + 1} (Название; Сумма): ");
-                    string[] input = Console.ReadLine().Split(';');
-
-                    if (input.Length == 2 &&
-                        decimal.TryParse(input[1].Trim(), out decimal amount))
-                    {
-                        names[i] = input[0].Trim();
-                        amounts[i] = amount;
-                        break;
-                    }
-                    Console.WriteLine("Ошибка формата! Повторите ввод.");
-                }
-            }
-
-            while (true)
-            {
-                Console.WriteLine("\nМеню:");
-                Console.WriteLine("1. Вывод данных");
-                Console.WriteLine("2. Статистика");
-                Console.WriteLine("3. Сортировка по цене");
-                Console.WriteLine("4. Конвертация валюты");
-                Console.WriteLine("5. Поиск по названию");
-                Console.WriteLine("0. Выход");
-
-                Console.Write("Выберите пункт: ");
-                string choice = Console.ReadLine();
-
-                switch (choice)
-                {
-                    case "1":
-                        PrintData(names, amounts);
-                        break;
-                    case "2":
-                        ShowStatistics(amounts);
-                        break;
-                    case "3":
-                        BubbleSort(names, amounts);
-                        Console.WriteLine("Данные отсортированы!");
-                        break;
-                    case "4":
-                        ConvertCurrency(amounts);
-                        break;
-                    case "5":
-                        SearchByName(names, amounts);
-                        break;
-                    case "0":
-                        return;
-                    default:
-                        Console.WriteLine("Неверный выбор!");
-                    //
-                        break;
-                }
+                Console.Write("Некорректная сумма! Введите снова: ");
             }
         }
 
-        static void PrintData(string[] names, decimal[] amounts)
+        bool exit = false;
+        while (!exit)
         {
-            Console.WriteLine("\n{0,-40} {1}", "Название", "Сумма");
-            Console.WriteLine(new string('-', 50));
-            for (int i = 0; i < names.Length; i++)
+            Console.WriteLine("\nМеню:");
+            Console.WriteLine("1. Вывод данных");
+            Console.WriteLine("2. Статистика");
+            Console.WriteLine("3. Сортировка по цене");
+            Console.WriteLine("4. Конвертация валюты");
+            Console.WriteLine("5. Поиск по названию");
+            Console.WriteLine("0. Выход");
+            Console.Write("Выберите пункт: ");
+
+            switch (Console.ReadLine())
             {
-                Console.WriteLine("{0,-40} {1:C2}", names[i], amounts[i]);
+                case "1":
+                    PrintData(names, amounts);
+                    break;
+                case "2":
+                    ShowStatistics(amounts);
+                    break;
+                case "3":
+                    BubbleSort(names, amounts);
+                    break;
+                case "4":
+                    ConvertCurrency(amounts);
+                    break;
+                case "5":
+                    SearchByName(names, amounts);
+                    break;
+                case "0":
+                    exit = true;
+                    break;
+                default:
+                    Console.WriteLine("Неверный выбор!");
+                    break;
             }
         }
+    }
 
-        static void ShowStatistics(decimal[] amounts)
+    static void PrintData(string[] names, decimal[] amounts)
+    {
+        Console.WriteLine("\nСписок расходов:");
+        for (int i = 0; i < names.Length; i++)
         {
-            decimal sum = 0, max = amounts[0], min = amounts[0];
-            foreach (decimal amount in amounts)
-            {
-                sum += amount;
-                if (amount > max) max = amount;
-                if (amount < min) min = amount;
-            }
+            Console.WriteLine($"{names[i]} - {amounts[i]:C2}");
+        }
+    }
 
-            Console.WriteLine("\nСтатистика:");
-            Console.WriteLine($"Сумма: {sum:C2}");
-            Console.WriteLine($"Среднее: {sum / amounts.Length:C2}");
-            Console.WriteLine($"Максимум: {max:C2}");
-            Console.WriteLine($"Минимум: {min:C2}");
+    static void ShowStatistics(decimal[] amounts)
+    {
+        if (amounts.Length == 0) return;
+
+        decimal sum = 0, max = amounts[0], min = amounts[0];
+        foreach (var amount in amounts)
+        {
+            sum += amount;
+            if (amount > max) max = amount;
+            if (amount < min) min = amount;
         }
 
-        static void BubbleSort(string[] names, decimal[] amounts)
+        Console.WriteLine("\nСтатистика:");
+        Console.WriteLine($"Всего потрачено: {sum:C2}");
+        Console.WriteLine($"Средняя сумма: {sum / amounts.Length:C2}");
+        Console.WriteLine($"Максимальная трата: {max:C2}");
+        Console.WriteLine($"Минимальная трата: {min:C2}");
+    }
+
+    static void BubbleSort(string[] names, decimal[] amounts)
+    {
+        for (int i = 0; i < amounts.Length - 1; i++)
         {
-            for (int i = 0; i < amounts.Length - 1; i++)
+            for (int j = 0; j < amounts.Length - i - 1; j++)
             {
-                for (int j = 0; j < amounts.Length - i - 1; j++)
+                if (amounts[j] > amounts[j + 1])
                 {
-                    if (amounts[j] > amounts[j + 1])
-                    {
-                        (amounts[j], amounts[j + 1]) = (amounts[j + 1], amounts[j]);
+                    (amounts[j], amounts[j + 1]) = (amounts[j + 1], amounts[j]);
 
-                        (names[j], names[j + 1]) = (names[j + 1], names[j]);
-                    }
+                    (names[j], names[j + 1]) = (names[j + 1], names[j]);
                 }
             }
         }
+        Console.WriteLine("Сортировка завершена!");
+    }
 
-        static void ConvertCurrency(decimal[] amounts)
+    static void ConvertCurrency(decimal[] amounts)
+    {
+        Console.WriteLine("\nДоступные валюты:");
+        Console.WriteLine("1. USD (0.011)");
+        Console.WriteLine("2. EUR (0.010)");
+        Console.WriteLine("3. GBP (0.0085)");
+        Console.WriteLine("4. JPY (1.64)");
+        Console.WriteLine("5. Ввести свой курс");
+        Console.Write("Выберите вариант: ");
+
+        decimal rate;
+        switch (Console.ReadLine())
         {
-            Console.Write("Введите курс конвертации (рублей за 1 единицу валюты): ");
-            if (decimal.TryParse(Console.ReadLine(), out decimal rate) && rate > 0)
-            {
-                Console.WriteLine("\nКонвертированные суммы:");
-                foreach (decimal amount in amounts)
+            case "1":
+                rate = 0.011m;
+                break;
+            case "2":
+                rate = 0.010m;
+                break;
+            case "3":
+                rate = 0.0085m;
+                break;
+            case "4":
+                rate = 1.64m;
+                break;
+            case "5":
+                Console.Write("Введите курс (рубль к валюте): ");
+                while (!decimal.TryParse(Console.ReadLine(), out rate))
                 {
-                    Console.WriteLine($"{amount / rate:N2}");
+                    Console.Write("Некорректный курс! Введите снова: ");
                 }
-            }
-            else
+                break;
+            default:
+                Console.WriteLine("Неверный выбор!");
+                return;
+        }
+
+        Console.WriteLine("\nКонвертированные суммы:");
+        foreach (var amount in amounts)
+        {
+            Console.WriteLine($"{amount * rate:N2}");
+        }
+    }
+
+    static void SearchByName(string[] names, decimal[] amounts)
+    {
+        Console.Write("Введите часть названия для поиска: ");
+        string search = Console.ReadLine().ToLower();
+
+        bool found = false;
+        for (int i = 0; i < names.Length; i++)
+        {
+            if (names[i].ToLower().Contains(search))
             {
-                Console.WriteLine("Некорректный курс!");
+                Console.WriteLine($"{names[i]} - {amounts[i]:C2}");
+                found = true;
             }
         }
 
-        static void SearchByName(string[] names, decimal[] amounts)
-        {
-            Console.Write("Введите часть названия для поиска: ");
-            string search = Console.ReadLine().ToLower();
-
-            Console.WriteLine("\nРезультаты поиска:");
-            bool found = false;
-
-            for (int i = 0; i < names.Length; i++)
-            {
-                if (names[i].ToLower().Contains(search))
-                {
-                    Console.WriteLine($"{names[i],-40} {amounts[i]:C2}");
-                    found = true;
-                }
-            }
-
-            if (!found) Console.WriteLine("Ничего не найдено!");
-        }
+        if (!found) Console.WriteLine("Совпадений не найдено");
     }
 }
